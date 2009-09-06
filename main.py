@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from ctypes import *
 import ctypes.util
 
@@ -69,3 +71,10 @@ class FS(object):
                 print "[fs] Soundfont %s unloaded successfully" % sf
         else:
             print "[fs] Soundfont %s was never loaded" % sf
+
+def test():
+    fs = FS()
+    fs.loadsf("double.sf2")
+    del fs
+
+test()
