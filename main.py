@@ -1,10 +1,15 @@
-import ctypes
+from ctypes import *
 import ctypes.util
 
 def load_fs():
     path = ctypes.util.find_library("fluidsynth")
     print "[fs] Using %s for FluidSynth library" % path
-    libfs = ctypes.cdll.LoadLibrary(path)
+    libfs = cdll.LoadLibrary(path)
+
+    # Argtypes
+    libfs.fluid_settings_setint.argtypes = [c_void_p, c_char_p, c_int]
+    libfs.fluid_settings_setnum.argtypes = [c_void_p, c_char_p, c_double]
+    libfs.fluid_settings_setstr.argtypes = [c_void_p, c_char_p, c_char_p]
 
     return libfs
 
@@ -25,7 +30,11 @@ class FSSettings(object):
 class FS(object):
     def __init__(self):
         self.libfs = load_fs()
+
         self.settings = FSSettings(self.libfs)
+        self.settings.set_string("synth.chorus.active", "no")
+        self.settings.set_string("synth.reverb.active", "no")
+
         self.synth = self.libfs.new_fluid_synth(self.settings.settings)
 
         self.sfd = {}
