@@ -1,4 +1,5 @@
 import ctypes
+import ctypes.util
 
 class FSSettings(object):
     def __init__(self, settings):
@@ -6,7 +7,9 @@ class FSSettings(object):
 
 class FS(object):
     def __init__(self):
-        self.libfs = ctypes.cdll.LoadLibrary("libfluidsynth.so.1")
+        path = ctypes.util.find_library("fluidsynth")
+        print "[fs] Using '%s' for FluidSynth library" % path
+        self.libfs = ctypes.cdll.LoadLibrary(path)
         self.settings = FSSettings(self.libfs.new_fluid_settings())
         self.synth = self.libfs.new_fluid_synth(self.settings.settings)
 
