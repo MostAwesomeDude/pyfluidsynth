@@ -1,16 +1,31 @@
 import ctypes
 import ctypes.util
 
+def load_fs():
+    path = ctypes.util.find_library("fluidsynth")
+    print "[fs] Using %s for FluidSynth library" % path
+    libfs = ctypes.cdll.LoadLibrary(path)
+
+    return libfs
+
 class FSSettings(object):
-    def __init__(self, settings):
-        self.settings = settings
+    def __init__(self, libfs):
+        self.libfs = libfs
+        self.settings = self.libfs.new_fluid_settings()
+
+    def set_float(self, key, value):
+        self.libfs.fluid_settings_setnum(self.settings, key, value)
+
+    def set_int(self, key, value):
+        self.libfs.fluid_settings_setint(self.settings, key, value)
+
+    def set_string(self, key, value):
+        self.libfs.fluid_settings_setstr(self.settings, key, value)
 
 class FS(object):
     def __init__(self):
-        path = ctypes.util.find_library("fluidsynth")
-        print "[fs] Using %s for FluidSynth library" % path
-        self.libfs = ctypes.cdll.LoadLibrary(path)
-        self.settings = FSSettings(self.libfs.new_fluid_settings())
+        self.libfs = load_fs()
+        self.settings = FSSettings(self.libfs)
         self.synth = self.libfs.new_fluid_synth(self.settings.settings)
 
         self.sfd = {}
