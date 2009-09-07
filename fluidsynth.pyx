@@ -8,6 +8,8 @@ cdef extern from "fluidsynth.h":
         pass
     ctypedef struct fluid_synth_t:
         pass
+    ctypedef struct fluid_audio_driver_t:
+        pass
     ctypedef struct fluid_player_t:
         pass
 
@@ -32,9 +34,17 @@ cdef extern from "fluidsynth.h":
     int fluid_synth_sfreload(fluid_synth_t*, unsigned int)
     int fluid_synth_sfunload(fluid_synth_t*, unsigned int, int)
 
+    # From audio.h
+    fluid_audio_driver_t* new_fluid_audio_driver(fluid_settings_t*,
+        fluid_synth_t*)
+    void delete_fluid_audio_driver(fluid_audio_driver_t*)
+
     # From midi.h
     fluid_player_t* new_fluid_player(fluid_synth_t*)
     void delete_fluid_player(fluid_player_t*)
+
+    int fluid_player_add(fluid_player_t*, char*)
+    int fluid_player_play(fluid_player_t*)
 
 class FluidError(Exception):
     pass
@@ -124,6 +134,16 @@ cdef class FluidSynth(object):
         else:
             del self._sf_dict[sf]
 
+cdef class FluidAudioDriver(object):
+    cdef fluid_audio_driver_t* audio_driver
+
+    def __init__(self, FluidSettings settings, FluidSynth synth):
+        self.audio_driver = new_fluid_audio_driver(settings.settings,
+            synth.synth)
+
+    def __del__(self):
+        delete_fluid_audio_driver(self.audio_driver)
+
 cdef class FluidPlayer(object):
     cdef fluid_player_t* player
 
@@ -132,3 +152,7 @@ cdef class FluidPlayer(object):
 
     def __del__(self):
         delete_fluid_player(self.player)
+
+    def play(self, midi):
+        fluid_player_add(self.player, midi)
+        fluid_player_play(self.player)
