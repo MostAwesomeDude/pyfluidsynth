@@ -24,11 +24,20 @@ cdef extern from "fluidsynth.h":
     int fluid_settings_setint(fluid_settings_t*, char*, int)
     int fluid_settings_setstr(fluid_settings_t*, char*, char*)
 
+    # From synth.h
     fluid_synth_t* new_fluid_synth(fluid_settings_t*)
     void delete_fluid_synth(fluid_synth_t*)
 
+    int fluid_synth_sfload(fluid_synth_t*, char*, int)
+    int fluid_synth_sfreload(fluid_synth_t*, unsigned int)
+    int fluid_synth_sfunload(fluid_synth_t*, unsigned int, int)
+
+    # From midi.h
     fluid_player_t* new_fluid_player(fluid_synth_t*)
     void delete_fluid_player(fluid_player_t*)
+
+class FluidError(Exception):
+    pass
 
 cdef class FluidSettings(object):
     cdef fluid_settings_t* settings
@@ -80,12 +89,40 @@ cdef class FluidSettings(object):
 
 cdef class FluidSynth(object):
     cdef fluid_synth_t* synth
+    cdef object _sf_dict
 
     def __init__(self, FluidSettings settings):
         self.synth = new_fluid_synth(settings.settings)
 
+        self._sf_dict = {}
+
     def __del__(self):
+        for sf in self._sf_dict:
+            if fluid_synth_sfunload(self.synth, self._sf_dict[sf], True):
+                raise FluidError, "Couldn't unload soundfont %s" % sf
         delete_fluid_synth(self.synth)
+
+    def load_soundfont(self, sf, reload_presets=True):
+        cdef int id
+
+        if sf in self._sf_dict:
+            if fluid_synth_sfreload(self.synth, self._sf_dict[sf]) == -1:
+                raise FluidError, "Couldn't reload soundfont %s" % sf
+        else:
+            id = fluid_synth_sfload(self.synth, sf, reload_presets)
+            if id == -1:
+                raise FluidError, "Couldn't load soundfont %s" % sf
+            else:
+                self._sf_dict[sf] = id
+
+    def unload_soundfont(self, sf, reload_presets=True):
+        if sf not in self._sf_dict:
+            raise FluidError, "Soundfont %s never loaded" % sf
+        if fluid_synth_sfunload(self.synth, self._sf_dict[sf],
+                reload_presets):
+            raise FluidError, "Couldn't unload soundfont %s" % sf
+        else:
+            del self._sf_dict[sf]
 
 cdef class FluidPlayer(object):
     cdef fluid_player_t* player
