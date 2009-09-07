@@ -15,6 +15,22 @@ def load_fs():
 
     return libfs
 
+class FSPlayer(object):
+    def __init__(self, libfs, player):
+        self.libfs = libfs
+        self.player = player
+
+    def play(self, midi):
+        self.libfs.fluid_player_add(self.player, midi)
+        self.libfs.fluid_player_play(self.player)
+        self.libfs.fluid_player_join(self.player)
+
+    def __del__(self):
+        self.destroy()
+
+    def destroy(self):
+        self.libfs.delete_fluid_player(self.player)
+
 class FSSettings(object):
     def __init__(self, libfs):
         self.libfs = libfs
@@ -37,7 +53,12 @@ class FS(object):
         self.settings.set_string("synth.chorus.active", "no")
         self.settings.set_string("synth.reverb.active", "no")
 
+        self.settings.set_string("audio.driver", "alsa")
+        self.settings.set_string("audio.alsa.device", "plughw:0")
+
         self.synth = self.libfs.new_fluid_synth(self.settings.settings)
+        self.driver = self.libfs.new_fluid_audio_driver(
+            self.settings.settings, self.synth)
 
         self.sfd = {}
 
@@ -48,6 +69,7 @@ class FS(object):
         for sf in self.sfd:
             self.unloadsf(sf)
 
+        self.libfs.delete_fluid_audio_driver(self.driver)
         self.libfs.delete_fluid_synth(self.synth)
         self.libfs.delete_fluid_settings(self.settings.settings)
 
@@ -72,9 +94,14 @@ class FS(object):
         else:
             print "[fs] Soundfont %s was never loaded" % sf
 
+    def player(self):
+        return FSPlayer(self.libfs, self.libfs.new_fluid_player(self.synth))
+
 def test():
     fs = FS()
     fs.loadsf("double.sf2")
+    player = fs.player()
+    player.play("finale.mid")
     del fs
 
 test()
