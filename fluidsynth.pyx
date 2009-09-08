@@ -45,6 +45,8 @@ cdef extern from "fluidsynth.h":
 
     int fluid_player_add(fluid_player_t*, char*)
     int fluid_player_play(fluid_player_t*)
+    int fluid_player_stop(fluid_player_t*)
+    int fluid_player_join(fluid_player_t*)
 
 class FluidError(Exception):
     pass
@@ -146,13 +148,31 @@ cdef class FluidAudioDriver(object):
 
 cdef class FluidPlayer(object):
     cdef fluid_player_t* player
+    cdef int paused
 
     def __init__(self, FluidSynth synth):
         self.player = new_fluid_player(synth.synth)
+        self.paused = True
 
     def __del__(self):
+        self.stop()
+
+        fluid_player_join(self.player)
         delete_fluid_player(self.player)
 
-    def play(self, midi):
+    cpdef add(self, midi):
         fluid_player_add(self.player, midi)
+
+    cpdef play(self, midi=None):
+        if midi:
+            self.add(midi)
         fluid_player_play(self.player)
+        self.paused = False
+
+    cpdef stop(self):
+        fluid_player_stop(self.player)
+        self.paused = True
+
+    def pause(self):
+        self.play() if self.paused else self.stop()
+        self.paused = not self.paused
