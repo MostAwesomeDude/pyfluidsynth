@@ -14,6 +14,8 @@ cdef extern from "fluidsynth.h":
         pass
     ctypedef struct fluid_sequencer_t:
         pass
+    ctypedef struct fluid_event_t:
+        pass
 
     # From settings.h
     fluid_settings_t* new_fluid_settings()
@@ -62,6 +64,14 @@ cdef extern from "fluidsynth.h":
     # From seq.h
     fluid_sequencer_t* new_fluid_sequencer()
     void delete_fluid_sequencer(fluid_sequencer_t*)
+
+    # From seqbind.h
+    short fluid_sequencer_register_fluidsynth(fluid_sequencer_t*,
+        fluid_synth_t*)
+
+    # From event.h
+    fluid_event_t* new_fluid_event()
+    void delete_fluid_event(fluid_event_t*)
 
 import sys
 
@@ -247,8 +257,24 @@ cdef class FluidPlayer(object):
 cdef class FluidSequencer(object):
     cdef fluid_sequencer_t* seq
 
-    def __init__(self):
+    def __init__(self, *synths):
         self.seq = new_fluid_sequencer()
+
+        if synths:
+            for synth in synths:
+                self.add(synth)
 
     def __del__(self):
         delete_fluid_sequencer(self.seq)
+
+    cpdef add(self, FluidSynth synth):
+        fluid_sequencer_register_fluidsynth(self.seq, synth.synth)
+
+cdef class FluidEvent(object):
+    cdef fluid_event_t* event
+
+    def __init__(self):
+        self.event = new_fluid_event()
+
+    def __del__(self):
+        delete_fluid_event(self.event)
