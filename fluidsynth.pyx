@@ -64,6 +64,7 @@ cdef class FluidSettings(object):
 
         if "linux" in sys.platform:
             self["audio.driver"] = "alsa"
+            self["audio.alsa.device"] = "plughw:0"
 
     def __del__(self):
         delete_fluid_settings(self.settings)
@@ -188,8 +189,8 @@ cdef class FluidPlayer(object):
 
     def __del__(self):
         self.stop()
+        self.join()
 
-        fluid_player_join(self.player)
         delete_fluid_player(self.player)
 
     cpdef add(self, midi):
@@ -204,6 +205,9 @@ cdef class FluidPlayer(object):
     cpdef stop(self):
         fluid_player_stop(self.player)
         self.paused = True
+
+    cpdef join(self):
+        fluid_player_join(self.player)
 
     def pause(self):
         self.play() if self.paused else self.stop()
