@@ -36,6 +36,12 @@ cdef extern from "fluidsynth.h":
 
     int fluid_synth_noteon(fluid_synth_t*, int, int, int)
     int fluid_synth_noteoff(fluid_synth_t*, int, int)
+    int fluid_synth_cc(fluid_synth_t*, int, int, int)
+    int fluid_synth_pitch_bend(fluid_synth_t*, int, int)
+    int fluid_synth_pitch_wheel_sens(fluid_synth_t*, int, int)
+    int fluid_synth_program_change(fluid_synth_t*, int, int)
+
+    int fluid_synth_bank_select(fluid_synth_t*, int, int)
 
     # From audio.h
     fluid_audio_driver_t* new_fluid_audio_driver(fluid_settings_t*,
@@ -168,6 +174,25 @@ cdef class FluidSynth(object):
 
     def noteoff(self, channel, pitch):
         fluid_synth_noteoff(self.synth, channel, pitch)
+
+    def cc(self, channel, control, value):
+        fluid_synth_cc(self.synth, channel, control, value)
+
+    control_change = cc
+
+    def pitch_bend(self, channel, value):
+        fluid_synth_pitch_bend(self.synth, channel, value)
+
+    def pitch_wheel_sens(self, channel, value):
+        fluid_synth_pitch_wheel_sens(self.synth, channel, value)
+
+    pitch_wheel_sensitivity = pitch_wheel_sens
+
+    def program_change(self, channel, program):
+        fluid_synth_program_change(self.synth, channel, program)
+
+    def bank_select(self, channel, bank):
+        fluid_synth_bank_select(self.synth, channel, bank)
 
 cdef class FluidAudioDriver(object):
     cdef fluid_audio_driver_t* audio_driver
