@@ -12,6 +12,8 @@ cdef extern from "fluidsynth.h":
         pass
     ctypedef struct fluid_player_t:
         pass
+    ctypedef struct fluid_sequencer_t:
+        pass
 
     # From settings.h
     fluid_settings_t* new_fluid_settings()
@@ -56,6 +58,10 @@ cdef extern from "fluidsynth.h":
     int fluid_player_play(fluid_player_t*)
     int fluid_player_stop(fluid_player_t*)
     int fluid_player_join(fluid_player_t*)
+
+    # From seq.h
+    fluid_sequencer_t* new_fluid_sequencer()
+    void delete_fluid_sequencer(fluid_sequencer_t*)
 
 import sys
 
@@ -237,3 +243,12 @@ cdef class FluidPlayer(object):
     def pause(self):
         self.play() if self.paused else self.stop()
         self.paused = not self.paused
+
+cdef class FluidSequencer(object):
+    cdef fluid_sequencer_t* seq
+
+    def __init__(self):
+        self.seq = new_fluid_sequencer()
+
+    def __del__(self):
+        delete_fluid_sequencer(self.seq)
