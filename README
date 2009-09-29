@@ -1,0 +1,18 @@
+This is a set of bindings to FluidSynth, providing Python objects that wrap
+the standard FluidSynth API and provide object functions as methods.
+
+You will need Cython to build the extension.
+
+A few demos are included.
+
+TODO:
+
+- The rest of the API should be wrapped. There are missing methods on a few
+  of the classes, and a few objects, like FluidSequencer, are missing.
+- The API should be documented.
+
+If you find this package useful, please let me know. If you find it
+inadequate for your needs or wants, please feel free to submit patches or
+requests for features.
+
+~ C.
