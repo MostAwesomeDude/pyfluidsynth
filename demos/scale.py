@@ -12,8 +12,6 @@ synth.load_soundfont("double.sf2")
 
 driver = fluidsynth.FluidAudioDriver(settings, synth)
 
-player = fluidsynth.FluidPlayer(synth)
-
 scale = (60, 62, 64, 65, 67, 69, 71, 72)
 
 for i in scale:
