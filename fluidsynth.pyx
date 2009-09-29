@@ -34,6 +34,9 @@ cdef extern from "fluidsynth.h":
     int fluid_synth_sfreload(fluid_synth_t*, unsigned int)
     int fluid_synth_sfunload(fluid_synth_t*, unsigned int, int)
 
+    int fluid_synth_noteon(fluid_synth_t*, int, int, int)
+    int fluid_synth_noteoff(fluid_synth_t*, int, int)
+
     # From audio.h
     fluid_audio_driver_t* new_fluid_audio_driver(fluid_settings_t*,
         fluid_synth_t*)
@@ -48,6 +51,8 @@ cdef extern from "fluidsynth.h":
     int fluid_player_stop(fluid_player_t*)
     int fluid_player_join(fluid_player_t*)
 
+import sys
+
 class FluidError(Exception):
     pass
 
@@ -56,6 +61,9 @@ cdef class FluidSettings(object):
 
     def __init__(self):
         self.settings = new_fluid_settings()
+
+        if "linux" in sys.platform:
+            self["audio.driver"] = "alsa"
 
     def __del__(self):
         delete_fluid_settings(self.settings)
@@ -99,6 +107,22 @@ cdef class FluidSettings(object):
         else:
             raise KeyError
 
+    property quality:
+
+        def __set__(self, quality):
+            if quality == "low":
+                self["synth.chorus.active"] = "off"
+                self["synth.reverb.active"] = "off"
+                self["synth.sample-rate"] = 22050
+            elif quality == "med":
+                self["synth.chorus.active"] = "off"
+                self["synth.reverb.active"] = "on"
+                self["synth.sample-rate"] = 44100
+            elif quality == "high":
+                self["synth.chorus.active"] = "on"
+                self["synth.reverb.active"] = "on"
+                self["synth.sample-rate"] = 44100
+
 cdef class FluidSynth(object):
     cdef fluid_synth_t* synth
     cdef object _sf_dict
@@ -135,6 +159,14 @@ cdef class FluidSynth(object):
             raise FluidError, "Couldn't unload soundfont %s" % sf
         else:
             del self._sf_dict[sf]
+
+    def noteon(self, channel, pitch, velocity):
+        if isinstance(velocity, float):
+            velocity = int(velocity * 127)
+        fluid_synth_noteon(self.synth, channel, pitch, velocity)
+
+    def noteoff(self, channel, pitch):
+        fluid_synth_noteoff(self.synth, channel, pitch)
 
 cdef class FluidAudioDriver(object):
     cdef fluid_audio_driver_t* audio_driver

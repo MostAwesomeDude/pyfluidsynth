@@ -4,9 +4,7 @@ import fluidsynth
 
 settings = fluidsynth.FluidSettings()
 
-settings["synth.chorus.active"] = "off"
-settings["synth.reverb.active"] = "off"
-settings["synth.sample-rate"] = 22050
+settings.quality = "low"
 
 synth = fluidsynth.FluidSynth(settings)
 
