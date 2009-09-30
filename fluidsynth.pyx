@@ -61,17 +61,28 @@ cdef extern from "fluidsynth.h":
     int fluid_player_stop(fluid_player_t*)
     int fluid_player_join(fluid_player_t*)
 
+    # From event.h
+    fluid_event_t* new_fluid_event()
+    void delete_fluid_event(fluid_event_t*)
+
+    short fluid_event_get_source(fluid_event_t*)
+    void fluid_event_set_source(fluid_event_t*, short)
+
+    short fluid_event_get_dest(fluid_event_t*)
+    void fluid_event_set_dest(fluid_event_t*, short)
+
     # From seq.h
     fluid_sequencer_t* new_fluid_sequencer()
     void delete_fluid_sequencer(fluid_sequencer_t*)
 
+    double fluid_sequencer_get_time_scale(fluid_sequencer_t*)
+    void fluid_sequencer_set_time_scale(fluid_sequencer_t*, double)
+
+    unsigned int fluid_sequencer_get_tick(fluid_sequencer_t*)
+
     # From seqbind.h
     short fluid_sequencer_register_fluidsynth(fluid_sequencer_t*,
         fluid_synth_t*)
-
-    # From event.h
-    fluid_event_t* new_fluid_event()
-    void delete_fluid_event(fluid_event_t*)
 
 import sys
 
@@ -254,6 +265,34 @@ cdef class FluidPlayer(object):
         self.play() if self.paused else self.stop()
         self.paused = not self.paused
 
+cdef class FluidEvent(object):
+    cdef fluid_event_t* event
+
+    def __init__(self):
+        self.event = new_fluid_event()
+
+        self.source = -1
+        self.dest = -1
+
+    def __del__(self):
+        delete_fluid_event(self.event)
+
+    property source:
+
+        def __get__(self):
+            return fluid_event_get_source(self.event)
+
+        def __set__(self, value):
+            fluid_event_set_source(self.event, value)
+
+    property dest:
+
+        def __get__(self):
+            return fluid_event_get_dest(self.event)
+
+        def __set__(self, value):
+            fluid_event_set_dest(self.event, value)
+
 cdef class FluidSequencer(object):
     cdef fluid_sequencer_t* seq
 
@@ -267,14 +306,21 @@ cdef class FluidSequencer(object):
     def __del__(self):
         delete_fluid_sequencer(self.seq)
 
+    property ticks_per_second:
+
+        def __get__(self):
+            return fluid_sequencer_get_time_scale(self.seq)
+
+        def __set__(self, value):
+            fluid_sequencer_set_time_scale(self.seq, value)
+
+    property ticks:
+
+        def __get__(self):
+            return fluid_sequencer_get_tick(self.seq)
+
     cpdef add(self, FluidSynth synth):
         fluid_sequencer_register_fluidsynth(self.seq, synth.synth)
 
-cdef class FluidEvent(object):
-    cdef fluid_event_t* event
-
-    def __init__(self):
-        self.event = new_fluid_event()
-
-    def __del__(self):
-        delete_fluid_event(self.event)
+    cpdef send(self, FluidEvent event):
+        pass
