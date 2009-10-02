@@ -1,3 +1,9 @@
+# Python builtins
+cdef extern from "dictobject.h":
+    ctypedef class __builtin__.dict [object PyDictObject]:
+        pass
+
+# Fluidsynth includes
 cdef extern from "fluidsynth.h":
 
     enum fluid_types_enum:
@@ -82,6 +88,12 @@ cdef extern from "fluidsynth.h":
 
     fluid_sequencer_t* new_fluid_sequencer()
     void delete_fluid_sequencer(fluid_sequencer_t*)
+
+    int fluid_sequencer_count_clients(fluid_sequencer_t*)
+
+    int fluid_sequencer_get_client_id(fluid_sequencer_t*, int)
+    char* fluid_sequencer_get_client_name(fluid_sequencer_t*, int)
+    int fluid_sequencer_client_is_dest(fluid_sequencer_t*, int)
 
     short fluid_sequencer_register_client(fluid_sequencer_t*, char*,
         fluid_event_callback_t, void*)
@@ -323,17 +335,12 @@ cdef class FluidEvent(object):
     def noteoff(self, channel, key):
         fluid_event_noteoff(self.event, channel, key)
 
-cdef void event_callback(unsigned int time, fluid_event_t* event,
-        fluid_sequencer_t* seq, void* data):
-    print time
-    print <int>event
-    print <int>seq
-    (<object>data)(time, <int>event, <int>seq)
-
-cdef class FluidSequencer(object):
+cdef class FluidSequencer(dict):
     cdef fluid_sequencer_t* seq
 
     def __init__(self, *synths):
+        super(FluidSequencer, self).__init__()
+
         self.seq = new_fluid_sequencer()
 
         if synths:
@@ -342,6 +349,14 @@ cdef class FluidSequencer(object):
 
     def __del__(self):
         delete_fluid_sequencer(self.seq)
+
+        super(FluidSequencer, self).__del__()
+
+    def __delitem__(self, key):
+        id, name = self[key]
+        fluid_sequencer_unregister_client(self.seq, id)
+
+        super(FluidSequencer, self).__delitem__(key)
 
     property ticks_per_second:
 
@@ -356,12 +371,19 @@ cdef class FluidSequencer(object):
         def __get__(self):
             return fluid_sequencer_get_tick(self.seq)
 
-    cpdef add_synth(self, FluidSynth synth):
-        return fluid_sequencer_register_fluidsynth(self.seq, synth.synth)
+    def is_dest(self, id):
+        return bool(fluid_sequencer_client_is_dest(self.seq, id))
 
-    cpdef add_callback(self, name, callback):
-        return fluid_sequencer_register_client(self.seq, name, event_callback,
-            <void*>callback)
+    cpdef add_synth(self, FluidSynth synth):
+        cdef short id
+        cdef char* name
+
+        id = fluid_sequencer_register_fluidsynth(self.seq, synth.synth)
+        name = fluid_sequencer_get_client_name(self.seq, id)
+
+        self[synth] = (id, name)
+
+        return (id, name)
 
     cpdef send(self, FluidEvent event, timestamp, absolute=True):
         fluid_sequencer_send_at(self.seq, event.event, timestamp, absolute)
