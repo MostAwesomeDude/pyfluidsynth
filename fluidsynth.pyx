@@ -65,6 +65,11 @@ cdef extern from "fluidsynth.h":
     fluid_event_t* new_fluid_event()
     void delete_fluid_event(fluid_event_t*)
 
+    void fluid_event_timer(fluid_event_t*, void*)
+    void fluid_event_note(fluid_event_t*, int, short, short, unsigned int)
+    void fluid_event_noteon(fluid_event_t*, int, short, short)
+    void fluid_event_noteoff(fluid_event_t*, int, short)
+
     short fluid_event_get_source(fluid_event_t*)
     void fluid_event_set_source(fluid_event_t*, short)
 
@@ -72,8 +77,19 @@ cdef extern from "fluidsynth.h":
     void fluid_event_set_dest(fluid_event_t*, short)
 
     # From seq.h
+    ctypedef void (*fluid_event_callback_t)(unsigned int, fluid_event_t*,
+        fluid_sequencer_t*, void*)
+
     fluid_sequencer_t* new_fluid_sequencer()
     void delete_fluid_sequencer(fluid_sequencer_t*)
+
+    short fluid_sequencer_register_client(fluid_sequencer_t*, char*,
+        fluid_event_callback_t, void*)
+    void fluid_sequencer_unregister_client(fluid_sequencer_t*, short)
+
+    void fluid_sequencer_send_now(fluid_sequencer_t*, fluid_event_t*)
+    int fluid_sequencer_send_at(fluid_sequencer_t*, fluid_event_t*,
+        unsigned int, int)
 
     double fluid_sequencer_get_time_scale(fluid_sequencer_t*)
     void fluid_sequencer_set_time_scale(fluid_sequencer_t*, double)
@@ -293,6 +309,27 @@ cdef class FluidEvent(object):
         def __set__(self, value):
             fluid_event_set_dest(self.event, value)
 
+    def timer(self):
+        # XXX should support callbacks
+        fluid_event_timer(self.event, NULL)
+        pass
+
+    def note(self, channel, key, velocity, duration):
+        fluid_event_note(self.event, channel, key, velocity, duration)
+
+    def noteon(self, channel, key, velocity):
+        fluid_event_noteon(self.event, channel, key, velocity)
+
+    def noteoff(self, channel, key):
+        fluid_event_noteoff(self.event, channel, key)
+
+cdef void event_callback(unsigned int time, fluid_event_t* event,
+        fluid_sequencer_t* seq, void* data):
+    print time
+    print <int>event
+    print <int>seq
+    (<object>data)(time, <int>event, <int>seq)
+
 cdef class FluidSequencer(object):
     cdef fluid_sequencer_t* seq
 
@@ -301,7 +338,7 @@ cdef class FluidSequencer(object):
 
         if synths:
             for synth in synths:
-                self.add(synth)
+                self.add_synth(synth)
 
     def __del__(self):
         delete_fluid_sequencer(self.seq)
@@ -319,8 +356,15 @@ cdef class FluidSequencer(object):
         def __get__(self):
             return fluid_sequencer_get_tick(self.seq)
 
-    cpdef add(self, FluidSynth synth):
-        fluid_sequencer_register_fluidsynth(self.seq, synth.synth)
+    cpdef add_synth(self, FluidSynth synth):
+        return fluid_sequencer_register_fluidsynth(self.seq, synth.synth)
 
-    cpdef send(self, FluidEvent event):
-        pass
+    cpdef add_callback(self, name, callback):
+        return fluid_sequencer_register_client(self.seq, name, event_callback,
+            <void*>callback)
+
+    cpdef send(self, FluidEvent event, timestamp, absolute=True):
+        fluid_sequencer_send_at(self.seq, event.event, timestamp, absolute)
+
+    cpdef send_right_now(self, FluidEvent event):
+        fluid_sequencer_send_now(self.seq, event.event)
