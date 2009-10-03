@@ -337,6 +337,8 @@ cdef class FluidEvent(object):
 
 cdef class FluidSequencer(dict):
     cdef fluid_sequencer_t* seq
+    cdef double _bpm
+    cdef double _tpb
 
     def __init__(self, *synths):
         super(FluidSequencer, self).__init__()
@@ -346,6 +348,10 @@ cdef class FluidSequencer(dict):
         if synths:
             for synth in synths:
                 self.add_synth(synth)
+
+        self._bpm = 120
+        self._tpb = 720
+        self._update_tps()
 
     def __del__(self):
         delete_fluid_sequencer(self.seq)
@@ -357,6 +363,24 @@ cdef class FluidSequencer(dict):
         fluid_sequencer_unregister_client(self.seq, id)
 
         super(FluidSequencer, self).__delitem__(key)
+
+    property beats_per_minute:
+
+        def __get__(self):
+            return self._bpm
+
+        def __set__(self, value):
+            self._bpm = value
+            self._update_tps()
+
+    property ticks_per_beat:
+
+        def __get__(self):
+            return self._tpb
+
+        def __set__(self, value):
+            self._tpb = value
+            self._update_tps()
 
     property ticks_per_second:
 
@@ -370,6 +394,9 @@ cdef class FluidSequencer(dict):
 
         def __get__(self):
             return fluid_sequencer_get_tick(self.seq)
+
+    def _update_tps(self):
+        self.ticks_per_second = (self._tpb * self._bpm) / 60.0
 
     def is_dest(self, id):
         return bool(fluid_sequencer_client_is_dest(self.seq, id))
