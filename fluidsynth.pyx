@@ -350,7 +350,7 @@ cdef class FluidSequencer(dict):
                 self.add_synth(synth)
 
         self._bpm = 120
-        self._tpb = 720
+        self._tpb = 120
         self._update_tps()
 
     def __del__(self):
