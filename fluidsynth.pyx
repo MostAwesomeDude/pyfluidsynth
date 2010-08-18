@@ -125,7 +125,6 @@ cdef class FluidSettings(object):
 
         if "linux" in sys.platform:
             self["audio.driver"] = "alsa"
-            self["audio.alsa.device"] = "plughw:0"
 
     def __del__(self):
         delete_fluid_settings(self.settings)
