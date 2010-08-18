@@ -114,6 +114,16 @@ cdef extern from "fluidsynth.h":
 
 import sys
 
+def coerce_to_int(s):
+    """
+    Turn a string into an integer.
+    """
+
+    try:
+        return int(s)
+    except ValueError:
+        return int(s.lower() not in ("false", "no", "off"))
+
 class FluidError(Exception):
     pass
 
@@ -156,17 +166,20 @@ cdef class FluidSettings(object):
 
     def __setitem__(self, key, value):
         key_type = fluid_settings_get_type(self.settings, key)
-        if key_type == FLUID_NUM_TYPE:
-            if not fluid_settings_setnum(self.settings, key, value):
-                raise KeyError
-        elif key_type == FLUID_INT_TYPE:
-            if not fluid_settings_setint(self.settings, key, value):
-                raise KeyError
-        elif key_type == FLUID_STR_TYPE:
+        if key_type == FLUID_STR_TYPE:
             if not fluid_settings_setstr(self.settings, key, value):
                 raise KeyError
         else:
-            raise KeyError
+            # Coerce to integer before going further
+            value = coerce_to_int(value)
+            if key_type == FLUID_NUM_TYPE:
+                if not fluid_settings_setnum(self.settings, key, value):
+                    raise KeyError
+            elif key_type == FLUID_INT_TYPE:
+                if not fluid_settings_setint(self.settings, key, value):
+                    raise KeyError
+            else:
+                raise KeyError
 
     property quality:
 
