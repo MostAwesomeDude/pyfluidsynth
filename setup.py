@@ -3,6 +3,12 @@
 from distutils.core import setup, Extension
 
 setup(
+    name="pyfluidsynth",
+    version="0.1",
+    description="Fluidsynth bindings",
+    author="Corbin Simpson",
+    author_email="MostAwesomeDude@gmail.com",
+    url="http://corbinsimpson.com/",
     ext_modules = [
         Extension("fluidsynth", ["fluidsynth.c"],
             libraries=["fluidsynth_lib", "dsound", "winmm", "user32"],
