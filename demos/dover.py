@@ -2,7 +2,7 @@
 
 import time
 
-import fluidsynth
+from fluidsynth import fluidsynth
 
 settings = fluidsynth.FluidSettings()
 settings.quality = "low"

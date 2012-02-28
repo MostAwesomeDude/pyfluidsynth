@@ -2,7 +2,7 @@
 
 import time
 
-import fluidsynth
+from fluidsynth import fluidsynth
 
 settings = fluidsynth.FluidSettings()
 settings.quality = "low"
@@ -27,7 +27,7 @@ c_scale = []
 for note in range(60, 72):
     event = fluidsynth.FluidEvent()
     event.dest = dest[0]
-    event.note(0, note, 127, beat_length*0.9)
+    event.note(0, note, 127, int(beat_length*0.9))
     c_scale.append(event)
 
 ticks = sequencer.ticks + 10
