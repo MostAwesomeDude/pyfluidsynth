@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import fluidsynth
+from fluidsynth import fluidsynth
 
 settings = fluidsynth.FluidSettings()
 

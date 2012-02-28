@@ -28,7 +28,7 @@ for note in range(60, 72):
     event = fluidsynth.FluidEvent()
     event.dest = dest[0]
     event.note(0, note, 127, beat_length*0.9)
-    c_scale.append(event) 
+    c_scale.append(event)
 
 ticks = sequencer.ticks + 10
 

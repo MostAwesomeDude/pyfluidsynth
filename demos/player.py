@@ -2,7 +2,7 @@
 
 import sys
 
-import fluidsynth
+from fluidsynth import fluidsynth
 
 if len(sys.argv) < 3:
     print "Usage: %s soundfont.sf2 song.mid" % sys.argv[0]
