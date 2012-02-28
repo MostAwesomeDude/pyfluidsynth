@@ -86,16 +86,16 @@ handle.new_fluid_player.restype = c_void_p
 handle.delete_fluid_player.argtypes = (c_void_p,)
 handle.delete_fluid_player.restype = c_int
 
-handle.fluid_player_add.argtypes = (c_char_p, c_char_p)
+handle.fluid_player_add.argtypes = (c_void_p, c_char_p)
 handle.fluid_player_add.restype = c_int
 
-handle.fluid_player_play.argtypes = (c_char_p,)
+handle.fluid_player_play.argtypes = (c_void_p,)
 handle.fluid_player_play.restype = c_int
 
-handle.fluid_player_stop.argtypes = (c_char_p,)
+handle.fluid_player_stop.argtypes = (c_void_p,)
 handle.fluid_player_stop.restype = c_int
 
-handle.fluid_player_join.argtypes = (c_char_p,)
+handle.fluid_player_join.argtypes = (c_void_p,)
 handle.fluid_player_join.restype = c_int
 
 # From event.h
