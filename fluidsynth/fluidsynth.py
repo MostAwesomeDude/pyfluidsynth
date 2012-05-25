@@ -24,6 +24,7 @@ class FluidSettings(object):
         self.settings = handle.new_fluid_settings()
         self.quality = "med"
 
+        # Quirk: For Linux, ALSA is preferred over JACK only if explictly set.
         if "linux" in sys.platform:
             self["audio.driver"] = "alsa"
 
@@ -91,6 +92,7 @@ class FluidSynth(object):
     def __init__(self, settings):
         self._sf_dict = {}
         self.synth = handle.new_fluid_synth(settings.settings)
+        self.settings = settings
 
     def __del__(self):
         failed = []
@@ -152,9 +154,10 @@ class FluidSynth(object):
         handle.fluid_synth_bank_select(self.synth, channel, bank)
 
 class FluidAudioDriver(object):
-    def __init__(self, settings, synth):
-        self.audio_driver = handle.new_fluid_audio_driver(settings.settings,
-            synth.synth)
+    def __init__(self, synth):
+        self.audio_driver = handle.new_fluid_audio_driver(
+                synth.settings.settings, synth.synth)
+        self.synth = synth
 
     def __del__(self):
         handle.delete_fluid_audio_driver(self.audio_driver)
@@ -165,6 +168,7 @@ class FluidPlayer(object):
 
     def __init__(self, synth):
         self.player = handle.new_fluid_player(synth.synth)
+        self.synth = synth
 
     def __del__(self):
         self.stop()
@@ -233,6 +237,9 @@ class FluidEvent(object):
     def noteoff(self, channel, key):
         handle.fluid_event_noteoff(self.event, channel, key)
 
+    def pc(self, a, b):
+        handle.fluid_event_program_change(self.event, a, b)
+
 class FluidSequencer(dict):
 
     _bpm = 120
@@ -298,9 +305,9 @@ class FluidSequencer(dict):
         id = handle.fluid_sequencer_register_fluidsynth(self.seq, synth.synth)
         name = handle.fluid_sequencer_get_client_name(self.seq, id)
 
-        self[synth] = (id, name)
+        self[synth] = id, name
 
-        return (id, name)
+        return id, name
 
     def send(self, event, timestamp, absolute=True):
         handle.fluid_sequencer_send_at(self.seq, event.event, timestamp,
