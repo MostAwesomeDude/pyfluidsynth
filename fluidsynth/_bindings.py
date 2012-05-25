@@ -117,6 +117,9 @@ handle.fluid_event_noteon.restype = None
 handle.fluid_event_noteoff.argtypes = (c_void_p, c_int, c_short)
 handle.fluid_event_noteoff.restype = None
 
+handle.fluid_event_program_change.argtypes = c_void_p, c_int, c_short
+handle.fluid_event_program_change.restype = None
+
 handle.fluid_event_get_source.argtypes = (c_void_p,)
 handle.fluid_event_get_source.restype = c_short
 
