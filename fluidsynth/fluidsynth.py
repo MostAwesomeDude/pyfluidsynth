@@ -228,6 +228,9 @@ class FluidEvent(object):
         # XXX should support callbacks
         handle.fluid_event_timer(self.event, None)
 
+    def volume(self, channel, value):
+        handle.fluid_event_volume(self.event, channel, value)
+
     def note(self, channel, key, velocity, duration):
         handle.fluid_event_note(self.event, channel, key, velocity, duration)
 
@@ -236,6 +239,9 @@ class FluidEvent(object):
 
     def noteoff(self, channel, key):
         handle.fluid_event_noteoff(self.event, channel, key)
+
+    def pitch_bend(self, channel, pitch):
+        handle.fluid_event_pitch_bend(self.event, channel, pitch)
 
     def pc(self, a, b):
         handle.fluid_event_program_change(self.event, a, b)

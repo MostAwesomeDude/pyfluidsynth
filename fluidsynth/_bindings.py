@@ -108,6 +108,9 @@ handle.delete_fluid_event.restype = None
 handle.fluid_event_timer.argtypes = (c_void_p, c_void_p)
 handle.fluid_event_timer.restype = None
 
+handle.fluid_event_volume.argtypes = c_void_p, c_int, c_short
+handle.fluid_event_volume.restype = None
+
 handle.fluid_event_note.argtypes = (c_void_p, c_int, c_short, c_short, c_uint)
 handle.fluid_event_note.restype = None
 
@@ -116,6 +119,9 @@ handle.fluid_event_noteon.restype = None
 
 handle.fluid_event_noteoff.argtypes = (c_void_p, c_int, c_short)
 handle.fluid_event_noteoff.restype = None
+
+handle.fluid_event_pitch_bend.argtypes = c_void_p, c_int, c_int
+handle.fluid_event_pitch_bend.restype = None
 
 handle.fluid_event_program_change.argtypes = c_void_p, c_int, c_short
 handle.fluid_event_program_change.restype = None
