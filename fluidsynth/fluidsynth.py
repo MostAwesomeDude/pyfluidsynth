@@ -243,6 +243,9 @@ class FluidEvent(object):
     def pitch_bend(self, channel, pitch):
         handle.fluid_event_pitch_bend(self.event, channel, pitch)
 
+    def pitch_sens(self, channel, amount):
+        handle.fluid_event_pitch_wheelsens(self.event, channel, amount)
+
     def pc(self, a, b):
         handle.fluid_event_program_change(self.event, a, b)
 

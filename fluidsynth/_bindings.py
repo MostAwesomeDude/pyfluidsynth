@@ -123,6 +123,9 @@ handle.fluid_event_noteoff.restype = None
 handle.fluid_event_pitch_bend.argtypes = c_void_p, c_int, c_int
 handle.fluid_event_pitch_bend.restype = None
 
+handle.fluid_event_pitch_wheelsens.argtypes = c_void_p, c_int, c_short
+handle.fluid_event_pitch_wheelsens.restype = None
+
 handle.fluid_event_program_change.argtypes = c_void_p, c_int, c_short
 handle.fluid_event_program_change.restype = None
 
